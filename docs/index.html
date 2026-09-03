@@ -250,53 +250,6 @@
             flex-shrink: 0;
         }
 
-        .nav-links {
-            display: flex;
-            gap: var(--space-4);
-            font-size: 14.5px;
-        }
-
-        .nav-links a {
-            color: var(--mist);
-            transition: color 0.2s;
-        }
-
-        .nav-links a:hover {
-            color: var(--paper);
-        }
-
-        .nav-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--paper);
-            font-size: 22px;
-            cursor: pointer;
-        }
-
-        @media (max-width: 760px) {
-            .nav-links {
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: var(--ink-raised);
-                border-bottom: 1px solid var(--glass-border);
-                flex-direction: column;
-                padding: var(--space-3);
-                gap: var(--space-2);
-                display: none;
-            }
-
-            .nav-links.open {
-                display: flex;
-            }
-
-            .nav-toggle {
-                display: block;
-            }
-        }
-
         /* ---------- Reveal ---------- */
         .reveal {
             opacity: 0;
@@ -864,15 +817,7 @@
                             stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" />
                         <circle cx="14" cy="14" r="3" fill="var(--accent)" />
                     </svg>Fairlume</a>
-                <ul class="nav-links" id="navLinks">
-                    <li><a href="#product">Product</a></li>
-                    <li><a href="#how">How it works</a></li>
-                    <li><a href="#demo">Live demo</a></li>
-                </ul>
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <a href="#demo" class="btn btn-primary btn-sm">Request access</a>
-                    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
-                </div>
+                <a href="#demo" class="btn btn-primary btn-sm">Request access</a>
             </div>
         </nav>
 
@@ -1135,12 +1080,6 @@
     </div>
 
     <script>
-        // ---------- Mobile nav ----------
-        const navToggle = document.getElementById('navToggle');
-        const navLinks = document.getElementById('navLinks');
-        navToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
-        navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
-
         // ---------- Scroll reveal ----------
         const revealEls = document.querySelectorAll('.reveal');
         const io = new IntersectionObserver((entries) => {
