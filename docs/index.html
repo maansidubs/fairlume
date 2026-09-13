@@ -1053,6 +1053,22 @@
         };
         const nameOf = f => LABELS[f] || f.replace(/_/g, " ");
 
+        /* One-hot features carry a weight even when they are off. Work out which
+           state this applicant is in so the reason reads correctly either way. */
+        function oneHotOn(f, p) {
+            if (!p) return null;
+            if (f.startsWith("term_")) return p.term === f.slice(5).trim();
+            if (f.startsWith("home_ownership_")) return p.home_ownership === f.slice(15);
+            if (f.startsWith("purpose_")) return p.purpose === f.slice(8);
+            return null;
+        }
+        function readsAs(f, p) {
+            const label = nameOf(f);
+            const on = oneHotOn(f, p);
+            if (on === false) return "Not " + label.charAt(0).toLowerCase() + label.slice(1);
+            return label;
+        }
+
         /* ═══════════════════════════════════════════════════════
            STATE
            ═══════════════════════════════════════════════════════ */
@@ -1105,7 +1121,7 @@
                 const o = (0.44 + 0.56 * Math.abs(r.shap_value) / peak).toFixed(2);
                 return `<li style="opacity:${o}">
       <span class="dir ${up ? "up" : ""}">${up ? "raises" : "lowers"}</span>
-      <span class="nm">${nameOf(r.feature)}${v ? `<i>${v}</i>` : ""}</span>
+      <span class="nm">${readsAs(r.feature, p)}${v ? `<i>${v}</i>` : ""}</span>
       <span class="wt">${up ? "+" : "\u2212"}${Math.abs(r.shap_value).toFixed(3)}</span>
     </li>`;
             }).join("");
@@ -1162,7 +1178,7 @@
             sync();
         });
 
-        render(SAVED_READING, null);
+        render(SAVED_READING, payload());
 
         if (!API_URL) {
             noteEl.className = "note warn";
