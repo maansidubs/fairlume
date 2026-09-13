@@ -959,6 +959,45 @@
             </div>
         </section>
 
+        <!-- fairness ─────────────────────────────── -->
+        <section>
+            <div class="shell spread">
+                <div class="side">
+                    <h2>Location was never an input. It got in anyway.</h2>
+                </div>
+                <div class="body">
+                    <p>A model that is never shown where someone lives is not thereby neutral about it. Ordinary credit
+                        variables carry geography inside them, so the test is not whether location was excluded. It is
+                        whether the errors land evenly once it has been.</p>
+                    <p>Set one policy for the whole country, declining the riskiest fifth of applicants, then ask a
+                        narrow question of each state: among the people who went on to repay in full, how often were
+                        they declined anyway. Default rates differ by state for real reasons, and conditioning on the
+                        actual outcome takes that excuse away. What is left is the rate of a specific harm, a
+                        creditworthy applicant turned down.</p>
+                    <p>Nationally that happens to <strong class="num">16.1%</strong> of good borrowers. Across the <span
+                            class="num">34</span> states with enough volume to measure, it ranges from <strong
+                            class="num">11.7%</strong> to <strong class="num">18.7%</strong>, a spread of <strong
+                            class="num">1.6</strong> times. Approval rates stay between <span class="num">77.2%</span>
+                        and <span class="num">82.7%</span>, so nothing here trips the four-fifths screen that regulators
+                        reach for first.</p>
+                    <p class="pull">The states where the model wrongly declines the most are the states where borrowers
+                        repay the best.</p>
+                    <p>That is the part worth sitting with. Michigan, Connecticut, Minnesota, Washington and Oregon take
+                        the heaviest false decline rates, and they default less than average. Arkansas, Mississippi,
+                        Louisiana and Oklahoma get the lightest treatment, and they default more. The relationship runs
+                        backwards from what a well behaved model would produce.</p>
+                    <p>The likely mechanism is cost of living. In expensive states an ordinary borrower carries a larger
+                        loan, a bigger revolving balance and a higher debt to income ratio, and the model reads those
+                        levels as risk. The same person in a cheaper state looks conservative on paper. Geography walked
+                        in through the debt variables without ever being asked.</p>
+                    <p>One caveat on the extremes. Arkansas rests on <span class="num">377</span> applicants and is
+                        noisy at that size, so the widest gap should be read with some suspicion. Michigan's figure
+                        rests on <span class="num">1,515</span> and is firmer. The direction of the pattern holds across
+                        the whole ranking rather than depending on either end of it.</p>
+                </div>
+            </div>
+        </section>
+
         <!-- limits ───────────────────────────────── -->
         <section>
             <div class="shell spread">
@@ -979,10 +1018,10 @@
                             selection without ever being told about it.</p>
                     </div>
                     <div>
-                        <h3>Fairness is untested</h3>
-                        <p>Disparate impact across protected groups has not been measured. Leaving protected attributes
-                            out of the file does not remove the problem, since ordinary variables can stand in for them,
-                            and the test that would settle it is unfinished work.</p>
+                        <h3>Protected classes remain untested</h3>
+                        <p>The geographic check above is a proxy and a weak one. Race, sex and age are absent from this
+                            data, so the disparate impact that actually matters under the law has not been measured here
+                            and cannot be with this file alone.</p>
                     </div>
                     <div>
                         <h3>Attribution is not causation</h3>
