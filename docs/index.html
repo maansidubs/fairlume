@@ -2,98 +2,79 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fairlume: Explainable credit risk scoring</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fairlume</title>
+    <meta name="description"
+        content="An explainable credit default model. Move the sliders and the reasons rewrite themselves.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Inter:wght@300;400;500&display=swap"
         rel="stylesheet">
+
     <style>
-        /* ---------- Design tokens ---------- */
+        /* ─────────────────────────────────────────────
+   palette
+   ───────────────────────────────────────────── */
         :root {
-            --ink: #0A0D13;
-            --ink-2: #10141D;
-            --ink-raised: #161B26;
-            --glass: rgba(255, 255, 255, 0.045);
-            --glass-hover: rgba(255, 255, 255, 0.07);
-            --glass-border: rgba(255, 255, 255, 0.09);
-            --accent: #8791A8;
-            --accent-soft: rgba(135, 145, 168, 0.14);
-            --paper: #EAEDF2;
-            --mist: #909AAC;
-            --mist-dim: #545C6D;
+            --night: #050A14;
+            --tide: #0D1932;
+            --moon: #86AEDC;
+            --moon-d: #4E6E9C;
+            --pearl: #EEF2F8;
+            --pearl-2: #B4C2D8;
+            --pearl-3: #6E7F9B;
+            --faint: rgba(134, 174, 220, .10);
+            --faint-2: rgba(134, 174, 220, .24);
 
-            /* scoped to the scoring demo only — needs distinguishable bands */
-            --risk-poor: #B5786D;
-            --risk-fair: #B7A67C;
-            --risk-good: #7FA69A;
-            --risk-excellent: #8791A8;
-
-            --font-display: 'Space Grotesk', sans-serif;
-            --font-body: 'Public Sans', sans-serif;
-            --font-mono: 'IBM Plex Mono', monospace;
-
-            --space-1: 8px;
-            --space-2: 16px;
-            --space-3: 24px;
-            --space-4: 40px;
-            --space-5: 64px;
-            --space-6: 96px;
-
-            --radius-lg: 24px;
-            --radius-md: 14px;
-            --radius-sm: 8px;
-
-            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+            --display: "Cormorant Garamond", Georgia, serif;
+            --text: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
-        * {
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
         }
 
         html {
+            -webkit-text-size-adjust: 100%;
             scroll-behavior: smooth;
         }
 
         body {
-            background: var(--ink);
-            color: var(--paper);
-            font-family: var(--font-body);
-            font-size: 16px;
-            line-height: 1.6;
+            margin: 0;
+            background: var(--night);
+            color: var(--pearl-2);
+            font-family: var(--text);
+            font-size: 16.5px;
+            font-weight: 300;
+            line-height: 1.76;
             -webkit-font-smoothing: antialiased;
-            overflow-x: hidden;
         }
 
-        a {
-            color: inherit;
-            text-decoration: none;
+        .sky {
+            position: fixed;
+            inset: -20vh -10vw;
+            pointer-events: none;
+            z-index: 0;
+            background:
+                radial-gradient(50vw 40vw at 74% 4%, rgba(78, 110, 156, .30), transparent 64%),
+                radial-gradient(46vw 40vw at 8% 40%, rgba(43, 64, 102, .26), transparent 66%),
+                radial-gradient(58vw 44vw at 82% 86%, rgba(60, 88, 130, .20), transparent 68%);
+            filter: blur(6px);
+            animation: drift 48s ease-in-out infinite alternate;
         }
 
-        ul {
-            list-style: none;
-        }
+        @keyframes drift {
+            from {
+                transform: translate3d(0, 0, 0) scale(1);
+            }
 
-        img,
-        svg {
-            display: block;
-            max-width: 100%;
-        }
-
-        button {
-            font-family: inherit;
-        }
-
-        a:focus-visible,
-        button:focus-visible,
-        input:focus-visible {
-            outline: 2px solid var(--accent);
-            outline-offset: 3px;
-            border-radius: 4px;
+            to {
+                transform: translate3d(-2.5%, 2%, 0) scale(1.07);
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -101,1109 +82,1104 @@
                 scroll-behavior: auto;
             }
 
+            .sky {
+                animation: none;
+            }
+
             * {
-                animation-duration: 0.001ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.001ms !important;
+                transition-duration: .001ms !important;
             }
         }
 
-        /* ---------- Ambient background ---------- */
-        .ambient {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            background:
-                radial-gradient(650px 550px at 12% 8%, var(--accent-soft), transparent 60%),
-                radial-gradient(750px 650px at 90% 25%, rgba(234, 237, 242, 0.05), transparent 60%),
-                radial-gradient(900px 700px at 50% 100%, var(--accent-soft), transparent 60%);
-            filter: blur(10px);
-        }
-
-        .wrap {
+        header,
+        main,
+        footer {
             position: relative;
             z-index: 1;
         }
 
-        .section-inner {
-            max-width: 1180px;
+        /* ─────────────────────────────────────────────
+   the grid, wide and asymmetric
+   ───────────────────────────────────────────── */
+        .shell {
+            width: 100%;
+            max-width: 1340px;
             margin: 0 auto;
-            padding-left: var(--space-3);
-            padding-right: var(--space-3);
+            padding: 0 clamp(1.5rem, 5.5vw, 5.5rem);
         }
 
-        /* ---------- Typography ---------- */
-        .eyebrow {
-            font-family: var(--font-mono);
-            font-size: 12px;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--accent);
-            margin-bottom: var(--space-2);
+        .spread {
+            display: grid;
+            grid-template-columns: minmax(0, .72fr) minmax(0, 1.55fr);
+            gap: clamp(2rem, 6vw, 7rem);
+            align-items: start;
         }
 
+        .spread>.side {
+            position: sticky;
+            top: clamp(2rem, 7vh, 4.5rem);
+        }
+
+        .body {
+            max-width: 60ch;
+        }
+
+        @media (max-width:1000px) {
+            .spread {
+                grid-template-columns: 1fr;
+                gap: 1.6rem;
+            }
+
+            .spread>.side {
+                position: static;
+            }
+        }
+
+        ::selection {
+            background: rgba(134, 174, 220, .26);
+        }
+
+        :focus-visible {
+            outline: 1px solid var(--moon);
+            outline-offset: 5px;
+        }
+
+        /* ─────────────────────────────────────────────
+   type
+   ───────────────────────────────────────────── */
         h1,
         h2,
         h3 {
-            font-family: var(--font-display);
-            font-weight: 500;
-            color: var(--paper);
-            letter-spacing: -0.01em;
+            margin: 0;
+            font-weight: 300;
+            color: var(--pearl);
         }
 
         h1 {
-            font-size: clamp(36px, 5vw, 58px);
-            line-height: 1.08;
+            font-family: var(--display);
+            font-size: clamp(3rem, 7.6vw, 6.4rem);
+            line-height: 1.02;
+            letter-spacing: -.015em;
         }
 
         h2 {
-            font-size: clamp(26px, 3.2vw, 38px);
-            line-height: 1.18;
-            margin-bottom: var(--space-3);
+            font-family: var(--display);
+            font-size: clamp(2rem, 3.6vw, 3.15rem);
+            line-height: 1.12;
+            letter-spacing: -.008em;
         }
 
         h3 {
-            font-size: 19px;
-            line-height: 1.3;
-            margin-bottom: var(--space-1);
+            font-family: var(--text);
+            font-size: .95rem;
+            font-weight: 400;
+            color: var(--pearl);
         }
 
         p {
-            color: var(--mist);
+            margin: 0 0 1.55em;
         }
 
-        /* ---------- Buttons ---------- */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 13px 24px;
-            border-radius: 100px;
-            font-family: var(--font-body);
-            font-weight: 600;
-            font-size: 14.5px;
-            transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease), background 0.25s var(--ease);
-            border: 1px solid transparent;
-            white-space: nowrap;
+        p:last-child {
+            margin-bottom: 0;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent), #6B7488);
-            color: var(--ink);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px -8px rgba(135, 145, 168, 0.4);
-        }
-
-        .btn-ghost {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            color: var(--paper);
-        }
-
-        .btn-ghost:hover {
-            background: var(--glass-hover);
-            transform: translateY(-2px);
-        }
-
-        .btn-sm {
-            padding: 9px 18px;
-            font-size: 13.5px;
-        }
-
-        /* ---------- Nav ---------- */
-        .nav {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            background: rgba(10, 13, 18, 0.6);
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .nav-inner {
-            max-width: 1180px;
-            margin: 0 auto;
-            padding: 16px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 24px;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-family: var(--font-display);
-            font-size: 19px;
-            font-weight: 600;
-        }
-
-        .brand-mark {
-            width: 22px;
-            height: 22px;
-            flex-shrink: 0;
-        }
-
-        /* ---------- Reveal ---------- */
-        .reveal {
-            opacity: 0;
-            transform: translateY(24px);
-            transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
-        }
-
-        .reveal.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* ---------- Curve dividers ---------- */
-        .curve-divider {
-            position: relative;
-            line-height: 0;
-        }
-
-        .curve-divider svg {
-            display: block;
-            width: 100%;
-            height: 80px;
-        }
-
-        @media (max-width:760px) {
-            .curve-divider svg {
-                height: 44px;
-            }
-        }
-
-        /* ---------- Alternate section tone ---------- */
-        .tone-raised {
-            background: var(--ink-2);
-        }
-
-        /* ---------- Hero ---------- */
-        .hero {
-            padding: var(--space-6) 0 var(--space-5);
-        }
-
-        .hero-inner {
-            max-width: 1180px;
-            margin: 0 auto;
-            padding: 0 var(--space-3);
-            display: grid;
-            grid-template-columns: 1.05fr 0.95fr;
-            gap: var(--space-5);
-            align-items: center;
-        }
-
-        .hero-sub {
-            font-size: 17px;
-            max-width: 46ch;
-            margin: var(--space-3) 0 var(--space-4);
-        }
-
-        .hero-actions {
-            display: flex;
-            gap: var(--space-2);
-            flex-wrap: wrap;
-        }
-
-        .hero-visual {
-            position: relative;
-            aspect-ratio: 1/1;
-            max-width: 440px;
-            margin: 0 auto;
-        }
-
-        .lens-svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        .lens-ring-outer {
-            fill: none;
-            stroke: var(--glass-border);
-            stroke-width: 1;
-            transform-box: fill-box;
-            transform-origin: center;
-            animation: spin 50s linear infinite;
-        }
-
-        .lens-ring-inner {
-            fill: none;
-            stroke: var(--glass-border);
-            stroke-width: 1;
-            stroke-dasharray: 2 6;
-        }
-
-        .lens-line {
-            stroke: var(--glass-border);
-            stroke-width: 1;
-        }
-
-        .lens-dot {
-            fill: var(--accent);
-            transform-box: fill-box;
-            transform-origin: center;
-            animation: pulse 3s ease-in-out infinite;
-        }
-
-        .lens-tag {
-            font-family: var(--font-mono);
-            font-size: 11px;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            fill: var(--mist);
-        }
-
-        .lens-core-circle {
-            fill: var(--ink-raised);
-            stroke: var(--glass-border);
-            stroke-width: 1;
-        }
-
-        .lens-core-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-        }
-
-        .lens-score-num {
-            display: block;
-            font-family: var(--font-mono);
-            font-size: 44px;
-            font-weight: 500;
-            color: var(--accent);
-        }
-
-        .lens-score-label {
-            display: block;
-            font-family: var(--font-mono);
-            font-size: 11px;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--mist-dim);
-            margin-top: 2px;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-
-            50% {
-                transform: scale(1.6);
-                opacity: 0.55;
-            }
-        }
-
-        @media (max-width: 900px) {
-            .hero-inner {
-                grid-template-columns: 1fr;
-            }
-
-            .hero-visual {
-                order: -1;
-                max-width: 320px;
-            }
-        }
-
-        /* ---------- Stats ---------- */
-        .stats {
-            padding: var(--space-3) 0;
-        }
-
-        .stats-inner {
-            max-width: 1180px;
-            margin: 0 auto;
-            padding: 0 var(--space-3);
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: var(--space-3);
-        }
-
-        .stat {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .stat-num {
-            font-family: var(--font-mono);
-            font-size: 22px;
-            color: var(--paper);
-        }
-
-        .stat-label {
-            font-size: 13px;
-            color: var(--mist-dim);
-        }
-
-        /* ---------- Problem ---------- */
-        .problem {
-            padding: var(--space-6) 0;
-        }
-
-        .problem-inner {
-            max-width: 760px;
-            margin: 0 auto;
-            padding: 0 var(--space-3);
-        }
-
-        .problem-statement {
-            font-family: var(--font-display);
-            font-size: clamp(21px, 2.6vw, 28px);
-            line-height: 1.5;
-            color: var(--paper);
+        strong {
+            color: var(--pearl);
             font-weight: 400;
         }
 
-        .problem-statement em {
-            color: var(--accent);
-            font-style: normal;
+        em {
+            font-family: var(--display);
+            font-style: italic;
+            color: var(--pearl);
+            font-size: 1.08em;
         }
 
-        .problem-statement-sub {
-            margin-top: var(--space-3);
-            font-size: 16px;
-            color: var(--mist);
-            max-width: 60ch;
+        .num {
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum";
         }
 
-        /* ---------- Features ---------- */
-        .features {
-            padding: var(--space-5) 0 var(--space-6);
+        a {
+            color: var(--pearl-2);
+            text-decoration: none;
+            border-bottom: 1px solid var(--faint-2);
+            padding-bottom: 1px;
+            transition: color .3s, border-color .3s;
         }
 
-        .features-inner {
-            max-width: 1180px;
-            margin: 0 auto;
-            padding: 0 var(--space-3);
+        a:hover {
+            color: var(--pearl);
+            border-color: var(--moon);
         }
 
-        .feature-grid {
+        hr.hair {
+            height: 1px;
+            border: 0;
+            margin: 0;
+            background: linear-gradient(90deg, var(--faint-2), rgba(134, 174, 220, .04) 72%, transparent);
+        }
+
+        /* ─────────────────────────────────────────────
+   masthead + hero
+   ───────────────────────────────────────────── */
+        .mast {
+            padding: 2.4rem 0 0;
+        }
+
+        .mast .shell {
+            display: flex;
+            align-items: center;
+            gap: .72rem;
+        }
+
+        .word {
+            font-family: var(--display);
+            font-size: 1.42rem;
+            color: var(--pearl);
+            letter-spacing: .14em;
+            text-transform: lowercase;
+        }
+
+        .hero {
+            padding: clamp(5rem, 15vh, 10rem) 0 clamp(3.5rem, 8vh, 6rem);
+        }
+
+        .hero h1 {
+            max-width: 15ch;
+        }
+
+        .hero .spread {
+            margin-top: clamp(2rem, 5vh, 3.5rem);
+            align-items: end;
+        }
+
+        .hero .lede {
+            font-size: 1.12rem;
+            line-height: 1.7;
+            max-width: 44ch;
+        }
+
+        .hero .side {
+            position: static;
+        }
+
+        .hero .marks {
+            display: flex;
+            gap: clamp(1.5rem, 4vw, 3.5rem);
+        }
+
+        .hero .marks div span {
+            display: block;
+        }
+
+        .hero .marks .v {
+            font-family: var(--display);
+            font-size: 2.1rem;
+            color: var(--pearl);
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .hero .marks .k {
+            font-size: .78rem;
+            color: var(--pearl-3);
+            line-height: 1.5;
+            max-width: 14ch;
+            margin-top: .3rem;
+        }
+
+        /* ─────────────────────────────────────────────
+   the studio: sliders left, reading right
+   ───────────────────────────────────────────── */
+        .studio {
+            padding: clamp(2rem, 5vh, 3rem) 0 clamp(5rem, 11vh, 8rem);
+        }
+
+        .studio-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: var(--space-2);
-            margin-top: var(--space-3);
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr);
+            gap: clamp(2.5rem, 7vw, 7rem);
+            align-items: start;
+            margin-top: 2.8rem;
         }
 
-        .feature {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-3);
-            transition: transform 0.3s var(--ease), border-color 0.3s var(--ease), background 0.3s var(--ease);
-        }
-
-        .feature:hover {
-            transform: translateY(-4px);
-            border-color: rgba(135, 145, 168, 0.4);
-            background: var(--glass-hover);
-        }
-
-        .feature-lg {
-            grid-column: span 2;
-        }
-
-        .feature p {
-            font-size: 14.5px;
-        }
-
-        @media (max-width: 760px) {
-            .feature-grid {
+        @media (max-width:1000px) {
+            .studio-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .feature-lg {
-                grid-column: span 1;
+                gap: 3.5rem;
             }
         }
 
-        /* ---------- Demo ---------- */
-        .demo {
-            padding: var(--space-6) 0;
-        }
-
-        .demo-inner {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 var(--space-3);
-        }
-
-        .demo-panel {
-            margin-top: var(--space-4);
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-4);
+        .dials {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: var(--space-5);
+            gap: 2.2rem;
         }
 
-        @media (max-width: 860px) {
-            .demo-panel {
-                grid-template-columns: 1fr;
-            }
+        .dial label {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 1rem;
+            font-size: .86rem;
+            color: var(--pearl-3);
         }
 
-        .control {
-            margin-bottom: var(--space-3);
+        .dial .read {
+            font-family: var(--display);
+            font-size: 1.55rem;
+            color: var(--pearl);
+            font-variant-numeric: tabular-nums;
+            line-height: 1.2;
         }
 
-        .control label {
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            margin: .85rem 0 0;
+            background: transparent;
+            cursor: grab;
+            display: block;
+        }
+
+        input[type=range]:active {
+            cursor: grabbing;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            height: 1px;
+            background: var(--faint-2);
+        }
+
+        input[type=range]::-moz-range-track {
+            height: 1px;
+            background: var(--faint-2);
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 11px;
+            height: 11px;
+            margin-top: -5px;
+            border-radius: 50%;
+            background: var(--pearl);
+            box-shadow: 0 0 0 5px rgba(134, 174, 220, .14), 0 0 16px 3px rgba(134, 174, 220, .45);
+            transition: box-shadow .35s ease;
+        }
+
+        input[type=range]:hover::-webkit-slider-thumb,
+        input[type=range]:focus-visible::-webkit-slider-thumb {
+            box-shadow: 0 0 0 7px rgba(134, 174, 220, .18), 0 0 22px 5px rgba(134, 174, 220, .6);
+        }
+
+        input[type=range]::-moz-range-thumb {
+            width: 11px;
+            height: 11px;
+            border: 0;
+            border-radius: 50%;
+            background: var(--pearl);
+            box-shadow: 0 0 0 5px rgba(134, 174, 220, .14), 0 0 16px 3px rgba(134, 174, 220, .45);
+        }
+
+        .scale {
             display: flex;
             justify-content: space-between;
-            align-items: baseline;
-            font-size: 13.5px;
-            color: var(--mist);
-            margin-bottom: 8px;
+            margin-top: .5rem;
+            font-size: .72rem;
+            color: #4A5A76;
+            font-variant-numeric: tabular-nums;
         }
 
-        .control-value {
-            font-family: var(--font-mono);
-            color: var(--paper);
-            font-size: 13px;
+        .choice .lbl {
+            font-size: .86rem;
+            color: var(--pearl-3);
         }
 
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 4px;
-            border-radius: 2px;
-            background: var(--glass-border);
-            margin-top: 8px;
-            cursor: pointer;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--accent);
-            box-shadow: 0 0 0 4px rgba(135, 145, 168, 0.2);
-            cursor: pointer;
-        }
-
-        input[type="range"]::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            border: none;
-            border-radius: 50%;
-            background: var(--accent);
-            box-shadow: 0 0 0 4px rgba(135, 145, 168, 0.2);
-            cursor: pointer;
-        }
-
-        .gauge-wrap {
-            text-align: center;
-        }
-
-        .gauge {
-            width: 100%;
-            max-width: 260px;
-            margin: 0 auto;
-        }
-
-        .gauge-arc-bg {
-            fill: none;
-            stroke: var(--glass-border);
-            stroke-width: 12;
-            stroke-linecap: round;
-        }
-
-        .gauge-arc-fill {
-            fill: none;
-            stroke: var(--accent);
-            stroke-width: 12;
-            stroke-linecap: round;
-            transition: stroke-dasharray 0.5s var(--ease), stroke 0.5s var(--ease);
-        }
-
-        .gauge-needle {
-            stroke: var(--paper);
-            stroke-width: 3;
-            stroke-linecap: round;
-            transition: transform 0.5s var(--ease);
-            transform-box: view-box;
-            transform-origin: 120px 120px;
-        }
-
-        .gauge-pivot {
-            fill: var(--paper);
-        }
-
-        .gauge-score {
-            font-family: var(--font-mono);
-            font-size: 34px;
-            color: var(--paper);
-            margin-top: -24px;
-        }
-
-        .gauge-band {
-            font-family: var(--font-mono);
-            font-size: 12.5px;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--accent);
-            margin-top: 4px;
-            transition: color 0.3s;
-        }
-
-        .gauge-legend {
+        .choice .opts {
             display: flex;
-            justify-content: center;
-            gap: 14px;
-            margin-top: var(--space-2);
-            font-size: 11px;
-            font-family: var(--font-mono);
-            color: var(--mist-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            flex-wrap: wrap;
+            gap: 1.3rem;
+            margin-top: .62rem;
         }
 
-        .gauge-legend span.active {
-            color: var(--paper);
+        .choice button {
+            font-family: var(--text);
+            font-size: .95rem;
+            font-weight: 300;
+            background: none;
+            border: 0;
+            padding: 0 0 4px;
+            cursor: pointer;
+            color: var(--pearl-3);
+            border-bottom: 1px solid transparent;
+            transition: color .3s, border-color .3s;
         }
 
-        .explain {
-            margin-top: var(--space-3);
+        .choice button:hover {
+            color: var(--pearl-2);
         }
 
-        .explain-row {
+        .choice button[aria-pressed=true] {
+            color: var(--pearl);
+            border-bottom-color: var(--moon);
+        }
+
+        .more {
+            margin-top: .6rem;
+        }
+
+        .more summary {
+            list-style: none;
+            cursor: pointer;
+            font-size: .8125rem;
+            color: var(--pearl-3);
+            letter-spacing: .05em;
+            transition: color .3s;
+        }
+
+        .more summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .more summary:hover {
+            color: var(--pearl-2);
+        }
+
+        .more summary::after {
+            content: " +";
+        }
+
+        .more[open] summary::after {
+            content: " –";
+        }
+
+        .more .rest {
             display: grid;
-            grid-template-columns: 120px 1fr 48px;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 1.05rem 2.6rem;
+            margin-top: 1.6rem;
         }
 
-        .explain-label {
-            font-size: 13px;
-            color: var(--mist);
+        .rest .f {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: .8rem;
+            border-bottom: 1px solid var(--faint);
+            padding-bottom: .4rem;
         }
 
-        .explain-bar {
-            position: relative;
-            height: 6px;
-            background: var(--glass-border);
-            border-radius: 4px;
-            overflow: hidden;
+        .rest .f span {
+            font-size: .8125rem;
+            color: var(--pearl-3);
         }
 
-        .explain-fill {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.4s var(--ease), left 0.4s var(--ease), background 0.4s var(--ease);
+        .rest .f input {
+            font-family: var(--text);
+            font-size: .9375rem;
+            font-weight: 300;
+            color: var(--pearl);
+            background: transparent;
+            border: 0;
+            padding: 0;
+            text-align: right;
+            width: 6em;
+            font-variant-numeric: tabular-nums;
         }
 
-        .explain-val {
-            font-family: var(--font-mono);
-            font-size: 13px;
+        /* the reading */
+        .reading {
+            position: sticky;
+            top: clamp(2rem, 7vh, 4.5rem);
+        }
+
+        @media (max-width:1000px) {
+            .reading {
+                position: static;
+            }
+        }
+
+        .verdict {
+            display: flex;
+            align-items: baseline;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .verdict .p {
+            font-family: var(--display);
+            font-weight: 300;
+            font-size: clamp(4.2rem, 11vw, 7.8rem);
+            line-height: .9;
+            color: var(--pearl);
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 46px rgba(134, 174, 220, .42);
+            transition: opacity .45s ease;
+        }
+
+        .verdict .p.pending {
+            opacity: .34;
+        }
+
+        .verdict .cap {
+            font-size: .95rem;
+            color: var(--pearl-3);
+            max-width: 18ch;
+            line-height: 1.5;
+        }
+
+        .against {
+            margin-top: 1.3rem;
+            font-size: .95rem;
+            color: var(--pearl-3);
+        }
+
+        .reasons {
+            list-style: none;
+            margin: 2.9rem 0 0;
+            padding: 0;
+        }
+
+        .reasons li {
+            display: grid;
+            grid-template-columns: 5.6rem 1fr auto;
+            gap: 1rem;
+            align-items: baseline;
+            padding: .74rem 0;
+            border-bottom: 1px solid var(--faint);
+            transition: opacity .5s ease;
+        }
+
+        .reasons li:first-child {
+            border-top: 1px solid var(--faint);
+        }
+
+        .reasons .dir {
+            font-size: .78125rem;
+            letter-spacing: .06em;
+            color: var(--moon-d);
+        }
+
+        .reasons .dir.up {
+            color: var(--moon);
+        }
+
+        .reasons .nm {
+            color: var(--pearl);
+            font-size: .9875rem;
+        }
+
+        .reasons .nm i {
+            font-style: normal;
+            color: var(--pearl-3);
+            font-size: .875rem;
+            margin-left: .55rem;
+        }
+
+        .reasons .wt {
+            font-size: .8125rem;
+            color: var(--pearl-3);
+            font-variant-numeric: tabular-nums;
+        }
+
+        @media (max-width:520px) {
+            .reasons li {
+                grid-template-columns: 1fr auto;
+            }
+
+            .reasons .dir {
+                grid-column: 1 / -1;
+                margin-bottom: -.35rem;
+            }
+        }
+
+        .note {
+            margin-top: 1.9rem;
+            font-size: .84rem;
+            color: #5C6C88;
+            line-height: 1.65;
+            max-width: 50ch;
+        }
+
+        .note.warn {
+            color: var(--moon-d);
+        }
+
+        /* ─────────────────────────────────────────────
+   prose sections
+   ───────────────────────────────────────────── */
+        section {
+            padding: clamp(4rem, 10vh, 8rem) 0;
+        }
+
+        .pull {
+            font-family: var(--display);
+            font-style: italic;
+            font-size: clamp(1.4rem, 2.4vw, 1.95rem);
+            line-height: 1.4;
+            color: var(--pearl);
+            margin: 2.4rem 0;
+            max-width: 34ch;
+        }
+
+        .side .kicker {
+            font-size: .78rem;
+            letter-spacing: .11em;
+            color: var(--pearl-3);
+            margin-bottom: 1.1rem;
+        }
+
+        .pair {
+            margin: 2.6rem 0;
+            max-width: 44ch;
+        }
+
+        .pair div {
+            display: flex;
+            align-items: baseline;
+            gap: 1.2rem;
+            padding: .62rem 0;
+            border-bottom: 1px solid var(--faint);
+        }
+
+        .pair div>span:first-child {
+            flex: 1;
+            color: var(--pearl);
+            font-size: .9375rem;
+        }
+
+        .pair div>span+span {
+            font-variant-numeric: tabular-nums;
+            font-size: .9375rem;
+            color: var(--pearl-2);
+            min-width: 4.6rem;
             text-align: right;
         }
 
-        /* ---------- How it works ---------- */
-        .how {
-            padding: var(--space-6) 0;
-            border-top: 1px solid var(--glass-border);
+        .pair .k>span:first-child,
+        .pair .k>span+span {
+            font-size: .78rem;
+            color: var(--pearl-3);
+            letter-spacing: .05em;
         }
 
-        .how-inner {
-            max-width: 1180px;
-            margin: 0 auto;
-            padding: 0 var(--space-3);
-        }
-
-        .how-steps {
+        .grid2 {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: var(--space-4);
-            margin-top: var(--space-4);
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 2.4rem 3.2rem;
+            max-width: none;
         }
 
-        .how-num {
-            font-family: var(--font-mono);
-            font-size: 13px;
-            color: var(--accent);
-            display: block;
-            margin-bottom: var(--space-2);
+        .grid2 h3 {
+            margin-bottom: .45rem;
         }
 
-        .how-step p {
-            font-size: 14.5px;
+        .grid2 p {
+            font-size: .9375rem;
+            margin: 0;
         }
 
-        @media (max-width: 760px) {
-            .how-steps {
-                grid-template-columns: 1fr;
-            }
+        /* ─────────────────────────────────────────────
+   footer
+   ───────────────────────────────────────────── */
+        footer {
+            padding: clamp(3rem, 8vh, 6rem) 0 5rem;
         }
 
-        /* ---------- CTA ---------- */
-        .cta-band {
-            padding: var(--space-6) 0;
-            text-align: center;
+        footer .spread {
+            align-items: end;
         }
 
-        .cta-inner {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 0 var(--space-3);
+        footer .side {
+            position: static;
         }
 
-        .cta-band p {
-            margin: var(--space-2) 0 var(--space-3);
-            font-size: 15px;
+        .flinks {
+            display: flex;
+            gap: 1.6rem;
+            flex-wrap: wrap;
+            font-size: .9rem;
+            margin-top: 1.5rem;
         }
 
-        /* ---------- Footer ---------- */
-        .footer {
-            border-top: 1px solid var(--glass-border);
-            padding: var(--space-4) 0;
-        }
-
-        .footer-inner {
-            max-width: 1180px;
-            margin: 0 auto;
-            padding: 0 var(--space-3);
-        }
-
-        .footer .brand {
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
-        .footer p {
-            font-size: 13px;
-            max-width: 60ch;
-            color: var(--mist-dim);
+        .fine {
+            font-size: .8125rem;
+            color: #5A6A86;
+            max-width: 48ch;
+            line-height: 1.7;
         }
     </style>
 </head>
 
 <body>
+    <div class="sky" aria-hidden="true"></div>
 
-    <div class="ambient"></div>
-
-    <div class="wrap">
-
-        <nav class="nav">
-            <div class="nav-inner">
-                <a href="#top" class="brand"><svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true">
-                        <circle cx="14" cy="14" r="12" fill="none" stroke="var(--glass-border)" stroke-width="1.4" />
-                        <path
-                            d="M14,8 L14,4 M19.2,11 L22.7,9 M19.2,17 L22.7,19 M14,20 L14,24 M8.8,17 L5.3,19 M8.8,11 L5.3,9"
-                            stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" />
-                        <circle cx="14" cy="14" r="3" fill="var(--accent)" />
-                    </svg>Fairlume</a>
-                <a href="#demo" class="btn btn-primary btn-sm">Request access</a>
-            </div>
-        </nav>
-
-        <!-- HERO -->
-        <section class="hero" id="top">
-            <div class="hero-inner">
-                <div class="hero-copy">
-                    <p class="eyebrow">Explainable credit risk scoring</p>
-                    <h1>Every risk decision,<br>traced to its reasons.</h1>
-                    <p class="hero-sub">Fairlume scores applicants in real time and returns the exact factors behind
-                        every number, so your team can explain a decision, not just report it.</p>
-                    <div class="hero-actions">
-                        <a href="#demo" class="btn btn-primary">See it live</a>
-                        <a href="#how" class="btn btn-ghost">How it works →</a>
-                    </div>
-                </div>
-
-                <div class="hero-visual">
-                    <svg class="lens-svg" viewBox="0 0 400 400" aria-hidden="true">
-                        <circle class="lens-ring-outer" cx="200" cy="200" r="150" />
-                        <circle class="lens-ring-inner" cx="200" cy="200" r="120" />
-
-                        <g>
-                            <line class="lens-line" x1="200" y1="200" x2="330" y2="70" />
-                            <circle class="lens-dot" cx="330" cy="70" r="4" />
-                            <text class="lens-tag" x="330" y="52" text-anchor="middle">income</text>
-                        </g>
-                        <g>
-                            <line class="lens-line" x1="200" y1="200" x2="70" y2="70" />
-                            <circle class="lens-dot" cx="70" cy="70" r="4" />
-                            <text class="lens-tag" x="70" y="52" text-anchor="middle">history</text>
-                        </g>
-                        <g>
-                            <line class="lens-line" x1="200" y1="200" x2="330" y2="330" />
-                            <circle class="lens-dot" cx="330" cy="330" r="4" />
-                            <text class="lens-tag" x="330" y="356" text-anchor="middle">dti</text>
-                        </g>
-                        <g>
-                            <line class="lens-line" x1="200" y1="200" x2="70" y2="330" />
-                            <circle class="lens-dot" cx="70" cy="330" r="4" />
-                            <text class="lens-tag" x="70" y="356" text-anchor="middle">inquiries</text>
-                        </g>
-
-                        <circle class="lens-core-circle" cx="200" cy="200" r="76" />
-                    </svg>
-                    <div class="lens-core-text">
-                        <span class="lens-score-num" id="heroScore">714</span>
-                        <span class="lens-score-label">live score</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <div class="curve-divider" aria-hidden="true">
-            <svg viewBox="0 0 1440 90" preserveAspectRatio="none">
-                <path d="M0,0 C480,90 960,90 1440,0 L1440,90 L0,90 Z" fill="var(--ink-2)" />
+    <header class="mast">
+        <div class="shell">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <defs>
+                    <linearGradient id="lume" x1="3" y1="2" x2="15" y2="16" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#EEF2F8" />
+                        <stop offset="1" stop-color="#EEF2F8" stop-opacity="0" />
+                    </linearGradient>
+                </defs>
+                <circle cx="9" cy="9" r="7.4" stroke="url(#lume)" stroke-width="1" />
+                <circle cx="9" cy="9" r="2.5" fill="#EEF2F8" fill-opacity=".9" />
             </svg>
+            <span class="word">fairlume</span>
+        </div>
+    </header>
+
+    <main>
+
+        <!-- hero ─────────────────────────────────── -->
+        <div class="hero">
+            <div class="shell">
+                <h1>Any model can give a score. This one gives the reason.</h1>
+                <div class="spread">
+                    <div class="side">
+                        <p class="lede">A credit default model built so the explanation and the number come out of the
+                            same call. Move the sliders and the reasons rewrite themselves.</p>
+                    </div>
+                    <div class="marks">
+                        <div><span class="v num">1.37M</span><span class="k">loans, each with its ending on
+                                record</span></div>
+                        <div><span class="v num">22.4%</span><span class="k">of them ended badly</span></div>
+                        <div><span class="v num">0.714</span><span class="k">ROC-AUC on unseen applicants</span></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- STATS -->
-        <section class="stats tone-raised">
-            <div class="stats-inner">
-                <div class="stat"><span class="stat-num">300–850</span><span class="stat-label">score range</span></div>
-                <div class="stat"><span class="stat-num">SHAP-based</span><span class="stat-label">every factor
-                        explained</span></div>
-                <div class="stat"><span class="stat-num">sub-200ms</span><span class="stat-label">per decision</span>
+        <!-- studio ───────────────────────────────── -->
+        <div class="studio">
+            <div class="shell">
+                <hr class="hair">
+                <div class="studio-grid">
+
+                    <div class="dials">
+                        <div class="dial">
+                            <label for="annual_inc">Annual income<span class="read num"
+                                    id="r_annual_inc">$52,000</span></label>
+                            <input type="range" id="annual_inc" min="12000" max="250000" step="1000" value="52000">
+                            <div class="scale"><span>$12k</span><span>$250k</span></div>
+                        </div>
+                        <div class="dial">
+                            <label for="dti">Debt to income<span class="read num" id="r_dti">27.9</span></label>
+                            <input type="range" id="dti" min="0" max="45" step="0.1" value="27.9">
+                            <div class="scale"><span>0</span><span>45</span></div>
+                        </div>
+                        <div class="dial">
+                            <label for="loan_amnt">Loan amount<span class="read num"
+                                    id="r_loan_amnt">$16,000</span></label>
+                            <input type="range" id="loan_amnt" min="1000" max="40000" step="500" value="16000">
+                            <div class="scale"><span>$1k</span><span>$40k</span></div>
+                        </div>
+                        <div class="dial">
+                            <label for="revol_util">Revolving credit in use<span class="read num"
+                                    id="r_revol_util">78.4%</span></label>
+                            <input type="range" id="revol_util" min="0" max="120" step="0.5" value="78.4">
+                            <div class="scale"><span>0%</span><span>120%</span></div>
+                        </div>
+
+                        <div class="choice">
+                            <div class="lbl">Term</div>
+                            <div class="opts" id="c_term" role="group" aria-label="Term">
+                                <button type="button" data-v="36 months">36 months</button>
+                                <button type="button" data-v="60 months">60 months</button>
+                            </div>
+                        </div>
+                        <div class="choice">
+                            <div class="lbl">Purpose</div>
+                            <div class="opts" id="c_purpose" role="group" aria-label="Purpose">
+                                <button type="button" data-v="debt_consolidation">Debt consolidation</button>
+                                <button type="button" data-v="credit_card">Credit card</button>
+                                <button type="button" data-v="home_improvement">Home</button>
+                                <button type="button" data-v="small_business">Business</button>
+                                <button type="button" data-v="major_purchase">Purchase</button>
+                                <button type="button" data-v="other">Other</button>
+                            </div>
+                        </div>
+                        <div class="choice">
+                            <div class="lbl">Living situation</div>
+                            <div class="opts" id="c_home_ownership" role="group" aria-label="Living situation">
+                                <button type="button" data-v="RENT">Renting</button>
+                                <button type="button" data-v="MORTGAGE">Mortgage</button>
+                                <button type="button" data-v="OWN">Owns outright</button>
+                            </div>
+                        </div>
+
+                        <details class="more">
+                            <summary>The remaining inputs</summary>
+                            <div class="rest">
+                                <div class="f"><span>Years employed</span><input type="number" id="emp_length_years"
+                                        value="2" min="0" max="10"></div>
+                                <div class="f"><span>Credit history, years</span><input type="number"
+                                        id="credit_history_years" value="6.2" step="0.1" min="0"></div>
+                                <div class="f"><span>Inquiries, 6 months</span><input type="number" id="inq_last_6mths"
+                                        value="3" min="0"></div>
+                                <div class="f"><span>Delinquencies, 2 years</span><input type="number" id="delinq_2yrs"
+                                        value="1" min="0"></div>
+                                <div class="f"><span>Public records</span><input type="number" id="pub_rec" value="0"
+                                        min="0"></div>
+                                <div class="f"><span>Open accounts</span><input type="number" id="open_acc" value="14"
+                                        min="0"></div>
+                                <div class="f"><span>Total accounts</span><input type="number" id="total_acc" value="23"
+                                        min="0"></div>
+                                <div class="f"><span>Revolving balance</span><input type="number" id="revol_bal"
+                                        value="18400" min="0" step="100"></div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <div class="reading">
+                        <div class="verdict">
+                            <div class="p num" id="prob">72</div>
+                            <div class="cap">risk score for this applicant</div>
+                        </div>
+                        <div class="against">The scale runs 0 to 100 and its midpoint is <span class="num">50</span>.
+                            Because training was rebalanced to stop the rarer outcome being ignored, this is a position
+                            on that scale rather than a calibrated chance of default.</div>
+                        <ul class="reasons" id="reasons"></ul>
+                        <p class="note" id="note"></p>
+                    </div>
+
                 </div>
-                <div class="stat"><span class="stat-num">XGBoost</span><span class="stat-label">core model</span></div>
             </div>
-        </section>
-
-        <!-- PROBLEM -->
-        <section class="problem tone-raised" id="product">
-            <div class="problem-inner reveal">
-                <p class="eyebrow">The problem</p>
-                <p class="problem-statement">Most scoring models return a number and nothing else. When a regulator, an
-                    applicant, or your own risk team asks <em>why</em>, "the model said so" isn't an answer anyone can
-                    act on.</p>
-                <p class="problem-statement-sub">Fairlume is built the other way around: the explanation isn't a report
-                    generated after the fact. It's a byproduct of how the score is computed.</p>
-            </div>
-        </section>
-
-        <div class="curve-divider" aria-hidden="true">
-            <svg viewBox="0 0 1440 90" preserveAspectRatio="none">
-                <path d="M0,0 C480,90 960,90 1440,0 L1440,90 L0,90 Z" fill="var(--ink)" />
-            </svg>
         </div>
 
-        <!-- FEATURES -->
-        <section class="features">
-            <div class="features-inner">
-                <p class="eyebrow reveal">What you get</p>
-                <h2 class="reveal">An instrument, not a black box.</h2>
-                <div class="feature-grid">
-                    <article class="feature feature-lg reveal">
-                        <h3>Full attribution on every score</h3>
-                        <p>Each decision ships with a ranked, signed breakdown of the factors that produced it, computed
-                            directly from the model, not reverse-engineered after the fact.</p>
-                    </article>
-                    <article class="feature reveal">
-                        <h3>Trained on real repayment outcomes</h3>
-                        <p>Built on historical lending data, not assumptions about what should matter.</p>
-                    </article>
-                    <article class="feature reveal">
-                        <h3>Tuned to your risk appetite</h3>
-                        <p>Score bands and thresholds are configurable to your existing underwriting policy.</p>
-                    </article>
-                    <article class="feature feature-lg reveal">
-                        <h3>Drift and bias monitoring</h3>
-                        <p>Fairlume flags when a factor's influence shifts across populations, before it becomes a
-                            compliance problem.</p>
-                    </article>
+        <!-- why ──────────────────────────────────── -->
+        <section>
+            <div class="shell spread">
+                <div class="side">
+                    <h2>A number on its own is not allowed to be the answer.</h2>
+                </div>
+                <div class="body">
+                    <p>When a lender in the United States turns someone down, it owes them more than the outcome. Under
+                        the Equal Credit Opportunity Act the applicant is entitled to the specific principal reasons
+                        behind the decision. Not a score band. Not a risk tier. Reasons.</p>
+                    <p>That requirement decides the shape of everything downstream of it. A model returning a
+                        probability and nothing else cannot be put in front of a customer no matter how well it
+                        performs, because there is no lawful way to act on what it says. The explanation is not the
+                        presentation layer sitting on top of the real work. It is part of the specification.</p>
+                    <p class="pull">The score and the reasons leave Fairlume in the same response, from the same fitted
+                        model, every time it is called.</p>
                 </div>
             </div>
         </section>
 
-        <!-- DEMO -->
-        <section class="demo" id="demo">
-            <div class="demo-inner">
-                <p class="eyebrow reveal">Try it</p>
-                <h2 class="reveal">Move the inputs. Watch the lens refocus.</h2>
-                <p class="reveal" style="max-width:56ch;">This is a simplified version of Fairlume's scoring logic,
-                    enough to show how the score and its explanation move together.</p>
+        <!-- data ─────────────────────────────────── -->
+        <section>
+            <div class="shell spread">
+                <div class="side">
+                    <h2>One and a third million loans, each with its ending.</h2>
+                </div>
+                <div class="body">
+                    <p>The data is the complete public file of a marketplace lender: every application it funded, the
+                        terms it granted, and whether the borrower eventually repaid. After cleaning, <strong
+                            class="num">1.37 million</strong> loans remain with a settled outcome, and <strong
+                            class="num">22.4%</strong> of them ended in default or charge off.</p>
+                    <p>Records like this are rarer than they ought to be. This one exists because retail investors were
+                        funding individual loans and needed the underwriting file to choose between them. When the
+                        platform wound that business down and reorganised itself as a bank, the reason to publish went
+                        with it, and nothing of comparable depth has appeared since. Banks hold far better data and are
+                        under no obligation to release any of it.</p>
+                    <p>Validation is chronological rather than random. The model is fitted on one stretch of lending and
+                        graded on the stretch that follows, which is the only arrangement that matches how the thing
+                        would be used. A random split lets a model study the same period it is later tested on, and
+                        quietly flatters it.</p>
+                </div>
+            </div>
+        </section>
 
-                <div class="demo-panel reveal">
-                    <div class="demo-controls">
-                        <div class="control">
-                            <label for="income">Annual income <span class="control-value"
-                                    id="incomeVal">$65,000</span></label>
-                            <input type="range" id="income" min="20000" max="200000" step="1000" value="65000">
-                        </div>
-                        <div class="control">
-                            <label for="dti">Debt-to-income ratio <span class="control-value"
-                                    id="dtiVal">28%</span></label>
-                            <input type="range" id="dti" min="0" max="60" step="1" value="28">
-                        </div>
-                        <div class="control">
-                            <label for="history">Credit history length <span class="control-value" id="historyVal">6
-                                    yrs</span></label>
-                            <input type="range" id="history" min="0" max="30" step="1" value="6">
-                        </div>
-                        <div class="control">
-                            <label for="inquiries">Recent inquiries <span class="control-value"
-                                    id="inquiriesVal">2</span></label>
-                            <input type="range" id="inquiries" min="0" max="10" step="1" value="2">
-                        </div>
+        <!-- how ──────────────────────────────────── -->
+        <section>
+            <div class="shell spread">
+                <div class="side">
+                    <h2>What the model is actually doing.</h2>
+                </div>
+                <div class="body">
+                    <p>The question is binary and narrow: given what was known at the moment of application, does this
+                        loan end in default. Loans still being repaid are excluded rather than counted as good, because
+                        their ending has not happened yet and treating an unfinished loan as a success teaches the model
+                        that patience is safety.</p>
+                    <p>Fifteen inputs feed it, all of them facts an applicant could state or a bureau could confirm
+                        before any decision is made. Nothing that only becomes knowable afterwards is allowed in, which
+                        sounds obvious and is the most common way a credit model quietly cheats.</p>
+                    <p>Because roughly one loan in four defaults, the training objective is reweighted so the rarer
+                        outcome is not simply optimised away. Without that, the cheapest strategy available to any
+                        classifier is to predict that nobody ever defaults, and it will find it.</p>
+                    <p>Logistic regression came first. Not ceremony, but a floor: the gradient boosted model has to beat
+                        a linear one by enough to be worth the loss of transparency, and if it cannot, the linear one
+                        ships. XGBoost clears it, and the margin is stated below rather than dressed up.</p>
+                    <p>Attribution uses SHAP rather than the importance chart XGBoost provides for free. That built in
+                        chart ranks features by how much they helped the trees split during training, which is a
+                        statement about the fitting process, not about any individual borrower. Ranked the second way
+                        instead, the weight moves noticeably: the term of the loan falls back and revolving utilisation,
+                        debt to income and recent inquiry activity come forward. For a model whose entire job is telling
+                        one person why, only the per applicant measure is admissible.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- usefulness ───────────────────────────── -->
+        <section>
+            <div class="shell spread">
+                <div class="side">
+                    <h2>What the numbers are worth.</h2>
+                </div>
+                <div class="body">
+                    <div class="pair">
+                        <div class="k"><span>on unseen applicants</span><span>ROC-AUC</span><span>PR-AUC</span></div>
+                        <div><span>Logistic regression</span><span class="num">0.678</span><span
+                                class="num">0.267</span></div>
+                        <div><span>XGBoost</span><span class="num">0.714</span><span class="num">0.317</span></div>
                     </div>
+                    <p>Read plainly: take one borrower who defaulted and one who repaid, at random. The model puts them
+                        in the right order about seventy one times in a hundred. Among the applicants it flags as risky,
+                        defaults are concentrated roughly forty percent more densely than chance would manage.</p>
+                    <p>Accuracy is left out on purpose. A model predicting that nobody will ever default scores <span
+                            class="num">77.6%</span> here and catches none of them, which is why the figure appears in
+                        slide decks and not in credit teams.</p>
+                    <p>These numbers are moderate, and that is the honest ceiling rather than a shortfall. Most consumer
+                        default is caused by events that appear nowhere in an application: a job lost, an illness, a
+                        separation, a car that finally dies. A model scoring 0.95 on this problem would not be
+                        brilliant. It would be reading something it should not have been given.</p>
+                    <p class="pull">What a lender deploys is never a probability. It is a threshold, and the threshold
+                        is a commercial decision.</p>
+                    <p>Move the cutoff and the same model becomes cautious or permissive without a line of retraining.
+                        Where it lands depends on arithmetic outside the model entirely: a default costs the principal,
+                        a good applicant wrongly declined costs the margin they would have paid, and the ratio between
+                        those two sets the line. The model's job is to order the queue accurately and account for the
+                        order it chose. Everything after that belongs to the business.</p>
+                </div>
+            </div>
+        </section>
 
-                    <div class="demo-readout">
-                        <div class="gauge-wrap">
-                            <svg class="gauge" viewBox="0 0 240 140" aria-hidden="true">
-                                <path class="gauge-arc-bg" d="M 20,120 A 100,100 0 0 1 220,120" />
-                                <path class="gauge-arc-fill" id="gaugeFill" d="M 20,120 A 100,100 0 0 1 220,120" />
-                                <line class="gauge-needle" id="gaugeNeedle" x1="120" y1="120" x2="120" y2="32" />
-                                <circle class="gauge-pivot" cx="120" cy="120" r="5" />
-                            </svg>
-                            <div class="gauge-score" id="gaugeScore">714</div>
-                            <div class="gauge-band" id="gaugeBand">Good</div>
-                            <div class="gauge-legend">
-                                <span id="legendPoor">Poor</span>
-                                <span id="legendFair">Fair</span>
-                                <span id="legendGood" class="active">Good</span>
-                                <span id="legendExcellent">Excellent</span>
-                            </div>
-                        </div>
-
-                        <div class="explain">
-                            <div class="explain-row">
-                                <span class="explain-label">Debt-to-income</span>
-                                <div class="explain-bar">
-                                    <div class="explain-fill" id="fillDti"></div>
-                                </div>
-                                <span class="explain-val" id="valDti">−84</span>
-                            </div>
-                            <div class="explain-row">
-                                <span class="explain-label">Annual income</span>
-                                <div class="explain-bar">
-                                    <div class="explain-fill" id="fillIncome"></div>
-                                </div>
-                                <span class="explain-val" id="valIncome">+40</span>
-                            </div>
-                            <div class="explain-row">
-                                <span class="explain-label">Credit history</span>
-                                <div class="explain-bar">
-                                    <div class="explain-fill" id="fillHistory"></div>
-                                </div>
-                                <span class="explain-val" id="valHistory">+28</span>
-                            </div>
-                            <div class="explain-row">
-                                <span class="explain-label">Recent inquiries</span>
-                                <div class="explain-bar">
-                                    <div class="explain-fill" id="fillInquiries"></div>
-                                </div>
-                                <span class="explain-val" id="valInquiries">−18</span>
-                            </div>
-                        </div>
+        <!-- limits ───────────────────────────────── -->
+        <section>
+            <div class="shell spread">
+                <div class="side">
+                    <h2>What it cannot do.</h2>
+                </div>
+                <div class="body grid2">
+                    <div>
+                        <h3>It has never seen a downturn</h3>
+                        <p>The lending it learned from happened in calm conditions. How default behaviour shifts under a
+                            real macroeconomic shock is outside its experience entirely, and none of the figures above
+                            would survive one intact.</p>
+                    </div>
+                    <div>
+                        <h3>The population is not the population</h3>
+                        <p>Everyone in this file already cleared the platform's own filter. The applicants turned away
+                            before that point are invisible here, so the model learns from survivors and inherits that
+                            selection without ever being told about it.</p>
+                    </div>
+                    <div>
+                        <h3>Fairness is untested</h3>
+                        <p>Disparate impact across protected groups has not been measured. Leaving protected attributes
+                            out of the file does not remove the problem, since ordinary variables can stand in for them,
+                            and the test that would settle it is unfinished work.</p>
+                    </div>
+                    <div>
+                        <h3>Attribution is not causation</h3>
+                        <p>These factors describe what the model weighted. They do not predict what would happen if a
+                            real person changed one of them, and reading them as advice would be a misuse of the output.
+                        </p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- HOW IT WORKS -->
-        <section class="how" id="how">
-            <div class="how-inner">
-                <p class="eyebrow reveal">How it works</p>
-                <h2 class="reveal">Three calls, one endpoint.</h2>
-                <div class="how-steps">
-                    <div class="how-step reveal">
-                        <span class="how-num">01</span>
-                        <h3>Send applicant data</h3>
-                        <p>Income, obligations, credit history, and inquiry activity are sent to a single scoring
-                            endpoint.</p>
-                    </div>
-                    <div class="how-step reveal">
-                        <span class="how-num">02</span>
-                        <h3>Fairlume scores it</h3>
-                        <p>The model returns a score from 300–850 in under 200 milliseconds.</p>
-                    </div>
-                    <div class="how-step reveal">
-                        <span class="how-num">03</span>
-                        <h3>Get the full explanation</h3>
-                        <p>A ranked, signed breakdown of every factor ships with the score, ready to hand to an
-                            underwriter or an applicant.</p>
-                    </div>
+    </main>
+
+    <footer>
+        <div class="shell spread">
+            <div class="side">
+                <div class="word">fairlume</div>
+                <div class="flinks">
+                    <a href="https://github.com/maansidubs/fairlume">Source</a>
+                    <a href="https://www.linkedin.com/in/maansi-dubey-238967420">Maansi Dubey</a>
                 </div>
             </div>
-        </section>
-
-        <div class="curve-divider" aria-hidden="true">
-            <svg viewBox="0 0 1440 90" preserveAspectRatio="none">
-                <path d="M0,0 C480,90 960,90 1440,0 L1440,90 L0,90 Z" fill="var(--ink-2)" />
-            </svg>
+            <p class="fine">Built as a student project on public marketplace lending data. Not a lending product, and
+                not a source of credit advice.</p>
         </div>
-
-        <!-- CTA -->
-        <section class="cta-band tone-raised">
-            <div class="cta-inner reveal">
-                <h2>See your own data through the lens.</h2>
-                <p>Fairlume is a concept project. The demo above runs a simplified version of the real scoring logic,
-                    live in your browser.</p>
-                <a href="#demo" class="btn btn-primary">Try the live demo</a>
-            </div>
-        </section>
-
-        <footer class="footer tone-raised">
-            <div class="footer-inner">
-                <span class="brand"><svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true">
-                        <circle cx="14" cy="14" r="12" fill="none" stroke="var(--glass-border)" stroke-width="1.4" />
-                        <path
-                            d="M14,8 L14,4 M19.2,11 L22.7,9 M19.2,17 L22.7,19 M14,20 L14,24 M8.8,17 L5.3,19 M8.8,11 L5.3,9"
-                            stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" />
-                        <circle cx="14" cy="14" r="3" fill="var(--accent)" />
-                    </svg>Fairlume</span>
-                <p>A concept project by Maansi Dubey exploring explainable credit risk scoring, built on lending outcome
-                    data with XGBoost and SHAP.</p>
-            </div>
-        </footer>
-
-    </div>
+    </footer>
 
     <script>
-        // ---------- Scroll reveal ----------
-        const revealEls = document.querySelectorAll('.reveal');
-        const io = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    io.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.15 });
-        revealEls.forEach(el => io.observe(el));
+        /* ═══════════════════════════════════════════════════════
+           THE ONLY PART YOU EDIT
+           ═══════════════════════════════════════════════════════ */
+        const API_URL = "https://fairlume.onrender.com";
+        const DATA_STATUS = "real";
 
-        // ---------- Scoring demo ----------
-        const incomeEl = document.getElementById('income');
-        const dtiEl = document.getElementById('dti');
-        const historyEl = document.getElementById('history');
-        const inquiriesEl = document.getElementById('inquiries');
-
-        const incomeValEl = document.getElementById('incomeVal');
-        const dtiValEl = document.getElementById('dtiVal');
-        const historyValEl = document.getElementById('historyVal');
-        const inquiriesValEl = document.getElementById('inquiriesVal');
-
-        const gaugeScoreEl = document.getElementById('gaugeScore');
-        const gaugeBandEl = document.getElementById('gaugeBand');
-        const gaugeFillEl = document.getElementById('gaugeFill');
-        const gaugeNeedleEl = document.getElementById('gaugeNeedle');
-        const heroScoreEl = document.getElementById('heroScore');
-
-        const ARC_LENGTH = Math.PI * 100; // semicircle radius 100
-
-        const bandColors = {
-            poor: getCssVar('--risk-poor'),
-            fair: getCssVar('--risk-fair'),
-            good: getCssVar('--risk-good'),
-            excellent: getCssVar('--risk-excellent')
+        /* A real response from POST /score for the defaults set on the sliders.
+           Shown before the first live call returns, and if the service is asleep. */
+        const SAVED_READING = {
+            default_probability: 0.7198957800865173,
+            base_value: 0.005680058617144823,
+            top_factors: [
+                { feature: "inq_last_6mths", shap_value: 0.43359002470970154 },
+                { feature: "dti", shap_value: 0.23100191354751587 },
+                { feature: "revol_util", shap_value: 0.21074868738651276 },
+                { feature: "term_ 60 months", shap_value: -0.18171910941600800 },
+                { feature: "revol_bal", shap_value: -0.12031317502260208 },
+                { feature: "open_acc", shap_value: 0.11310309916734695 },
+                { feature: "home_ownership_RENT", shap_value: 0.10977044701576233 },
+                { feature: "home_ownership_MORTGAGE", shap_value: 0.09800292551517487 },
+            ],
         };
 
-        function getCssVar(name) {
-            return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        /* ═══════════════════════════════════════════════════════
+           NAMES PEOPLE UNDERSTAND
+           ═══════════════════════════════════════════════════════ */
+        const LABELS = {
+            loan_amnt: "Loan amount", annual_inc: "Annual income", dti: "Debt to income",
+            revol_util: "Revolving credit in use", revol_bal: "Revolving balance",
+            delinq_2yrs: "Past delinquencies", open_acc: "Open accounts", total_acc: "Total accounts",
+            pub_rec: "Public records", inq_last_6mths: "Recent credit inquiries",
+            credit_history_years: "Length of credit history", emp_length_years: "Time in employment",
+            "term_ 60 months": "A 60 month term", "term_ 36 months": "A 36 month term",
+            home_ownership_RENT: "Renting", home_ownership_MORTGAGE: "Paying a mortgage",
+            home_ownership_OWN: "Owning outright", home_ownership_OTHER: "Other living situation",
+            purpose_debt_consolidation: "Consolidating debt", purpose_credit_card: "Refinancing a card",
+            purpose_small_business: "A business loan", purpose_home_improvement: "Home improvement",
+            purpose_major_purchase: "A major purchase", purpose_medical: "Medical costs",
+            purpose_car: "A car", purpose_other: "Another purpose",
+        };
+        const nameOf = f => LABELS[f] || f.replace(/_/g, " ");
+
+        /* ═══════════════════════════════════════════════════════
+           STATE
+           ═══════════════════════════════════════════════════════ */
+        const SLIDERS = ["annual_inc", "dti", "loan_amnt", "revol_util"];
+        const FIELDS = ["emp_length_years", "credit_history_years", "inq_last_6mths",
+            "delinq_2yrs", "pub_rec", "open_acc", "total_acc", "revol_bal"];
+        const CHOICES = { term: "60 months", purpose: "debt_consolidation", home_ownership: "RENT" };
+
+        const usd = n => "$" + Math.round(n).toLocaleString("en-US");
+        const FMT = {
+            annual_inc: usd, loan_amnt: usd,
+            dti: v => Number(v).toFixed(1),
+            revol_util: v => Number(v).toFixed(1) + "%",
+        };
+        const paint = id => document.getElementById("r_" + id).textContent =
+            FMT[id](document.getElementById(id).value);
+
+        function payload() {
+            const p = {};
+            SLIDERS.forEach(k => p[k] = Number(document.getElementById(k).value));
+            FIELDS.forEach(k => p[k] = Number(document.getElementById(k).value));
+            Object.keys(CHOICES).forEach(k => p[k] = CHOICES[k]);
+            return p;
+        }
+        function valueFor(f, p) {
+            if (!(f in p)) return "";
+            const v = p[f];
+            if (f === "annual_inc" || f === "loan_amnt" || f === "revol_bal") return usd(v);
+            if (f === "revol_util") return v + "%";
+            return String(v);
         }
 
-        function bandFor(score) {
-            if (score < 580) return 'poor';
-            if (score < 670) return 'fair';
-            if (score < 740) return 'good';
-            return 'excellent';
+        /* ═══════════════════════════════════════════════════════
+           THE READING
+           ═══════════════════════════════════════════════════════ */
+        const probEl = document.getElementById("prob");
+        const listEl = document.getElementById("reasons");
+        const noteEl = document.getElementById("note");
+
+        function render(reading, p) {
+            probEl.textContent = Math.round(reading.default_probability * 100);
+            probEl.classList.remove("pending");
+
+            const rows = reading.top_factors.slice(0, 8);
+            const peak = Math.max(...rows.map(r => Math.abs(r.shap_value))) || 1;
+
+            listEl.innerHTML = rows.map(r => {
+                const up = r.shap_value > 0;
+                const v = p ? valueFor(r.feature, p) : "";
+                const o = (0.44 + 0.56 * Math.abs(r.shap_value) / peak).toFixed(2);
+                return `<li style="opacity:${o}">
+      <span class="dir ${up ? "up" : ""}">${up ? "raises" : "lowers"}</span>
+      <span class="nm">${nameOf(r.feature)}${v ? `<i>${v}</i>` : ""}</span>
+      <span class="wt">${up ? "+" : "\u2212"}${Math.abs(r.shap_value).toFixed(3)}</span>
+    </li>`;
+            }).join("");
         }
 
-        function fmtMoney(v) {
-            return '$' + Number(v).toLocaleString('en-US');
+        /* ═══════════════════════════════════════════════════════
+           LIVE SCORING
+           ═══════════════════════════════════════════════════════ */
+        let timer = null, seq = 0;
+        function request() {
+            if (!API_URL) return;
+            probEl.classList.add("pending");
+            clearTimeout(timer);
+            timer = setTimeout(async () => {
+                const p = payload(), mine = ++seq;
+                try {
+                    const r = await fetch(API_URL.replace(/\/$/, "") + "/score", {
+                        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p),
+                    });
+                    if (!r.ok) throw new Error("The service answered with " + r.status + ".");
+                    const data = await r.json();
+                    if (mine !== seq) return;
+                    render(data, p);
+                    noteEl.className = "note"; noteEl.textContent = "";
+                } catch (err) {
+                    if (mine !== seq) return;
+                    probEl.classList.remove("pending");
+                    noteEl.className = "note warn";
+                    noteEl.textContent = String(err.message).includes("Failed to fetch")
+                        ? "The scoring service is not answering. Check that it is awake and that it allows requests from this address."
+                        : err.message;
+                }
+            }, 260);
         }
 
-        function fmtSigned(v) {
-            const r = Math.round(v);
-            return (r >= 0 ? '+' : '\u2212') + Math.abs(r);
-        }
+        /* ═══════════════════════════════════════════════════════
+           WIRING
+           ═══════════════════════════════════════════════════════ */
+        SLIDERS.forEach(id => {
+            paint(id);
+            document.getElementById(id).addEventListener("input", () => { paint(id); request(); });
+        });
+        FIELDS.forEach(id => document.getElementById(id).addEventListener("input", request));
 
-        function setFill(id, value, maxAbs, color) {
-            const el = document.getElementById(id);
-            const pct = Math.min(Math.abs(value) / maxAbs, 1) * 50; // half of bar width per side
-            el.style.background = color;
-            if (value >= 0) {
-                el.style.left = '50%';
-                el.style.width = pct + '%';
-            } else {
-                el.style.left = (50 - pct) + '%';
-                el.style.width = pct + '%';
-            }
-        }
-
-        function update() {
-            const income = Number(incomeEl.value);
-            const dti = Number(dtiEl.value);
-            const history = Number(historyEl.value);
-            const inquiries = Number(inquiriesEl.value);
-
-            incomeValEl.textContent = fmtMoney(income);
-            dtiValEl.textContent = dti + '%';
-            historyValEl.textContent = history + ' yrs';
-            inquiriesValEl.textContent = inquiries;
-
-            const incomeC = ((income - 20000) / 180000) * 160;
-            const dtiC = -(dti / 60) * 180;
-            const historyC = (history / 30) * 140;
-            const inquiriesC = -(inquiries / 10) * 90;
-
-            let score = 714 + incomeC + dtiC + historyC + inquiriesC;
-            score = Math.max(300, Math.min(850, Math.round(score)));
-
-            const band = bandFor(score);
-            const color = bandColors[band];
-
-            gaugeScoreEl.textContent = score;
-            heroScoreEl.textContent = score;
-            gaugeBandEl.textContent = band.charAt(0).toUpperCase() + band.slice(1);
-            gaugeBandEl.style.color = color;
-
-            ['Poor', 'Fair', 'Good', 'Excellent'].forEach(b => {
-                document.getElementById('legend' + b).classList.toggle('active', b.toLowerCase() === band);
+        Object.keys(CHOICES).forEach(key => {
+            const group = document.getElementById("c_" + key);
+            const sync = () => [...group.children].forEach(b =>
+                b.setAttribute("aria-pressed", b.dataset.v === CHOICES[key]));
+            group.addEventListener("click", e => {
+                const b = e.target.closest("button");
+                if (!b) return;
+                CHOICES[key] = b.dataset.v; sync(); request();
             });
+            sync();
+        });
 
-            const fraction = (score - 300) / (850 - 300);
-            gaugeFillEl.style.stroke = color;
-            gaugeFillEl.style.strokeDasharray = (fraction * ARC_LENGTH) + ' ' + ARC_LENGTH;
+        render(SAVED_READING, null);
 
-            const angle = fraction * 180 - 90;
-            gaugeNeedleEl.style.transform = 'rotate(' + angle + 'deg)';
-
-            document.getElementById('valDti').textContent = fmtSigned(dtiC);
-            document.getElementById('valIncome').textContent = fmtSigned(incomeC);
-            document.getElementById('valHistory').textContent = fmtSigned(historyC);
-            document.getElementById('valInquiries').textContent = fmtSigned(inquiriesC);
-
-            setFill('fillDti', dtiC, 180, getCssVar('--risk-poor'));
-            setFill('fillIncome', incomeC, 160, getCssVar('--risk-good'));
-            setFill('fillHistory', historyC, 140, getCssVar('--risk-good'));
-            setFill('fillInquiries', inquiriesC, 90, getCssVar('--risk-poor'));
+        if (!API_URL) {
+            noteEl.className = "note warn";
+            noteEl.textContent = "This is a saved reading. Set API_URL at the top of this file and the sliders will score against the live model.";
+        } else if (DATA_STATUS === "placeholder") {
+            noteEl.className = "note warn";
+            noteEl.textContent = "The opening reading is a placeholder. Replace SAVED_READING with real output from your service.";
+        } else {
+            /* The service sleeps when idle, so wake it while the page is being read.
+               Until it answers, the saved reading above stands in. */
+            noteEl.className = "note";
+            noteEl.textContent = "Waking the scoring service. The first result can take up to a minute.";
+            fetch(API_URL + "/", { cache: "no-store" })
+                .then(() => { noteEl.textContent = ""; })
+                .catch(() => { noteEl.textContent = ""; });
         }
-
-        [incomeEl, dtiEl, historyEl, inquiriesEl].forEach(el => el.addEventListener('input', update));
-        update();
     </script>
-
 </body>
 
 </html>
