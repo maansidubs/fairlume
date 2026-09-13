@@ -12,3 +12,4 @@ data/processed/*
 
 .env
 .DS_Store
+data/backup/
